@@ -13,7 +13,7 @@ namespace AutoLotDAL.DataOperations
     {
         private readonly string _connectionString;
         private SqlConnection _sqlConnection = null;
-        public InventoryDAL() : this(@"Data Source = (localDb)\msssqllocaldb; Integrated Security = true; Initial Catalog = AutoLot")
+        public InventoryDAL() : this(@"Data Source = (localDb)\mssqllocaldb; Integrated Security = true; Initial Catalog = AutoLot")
         {
 
         }
@@ -127,7 +127,7 @@ namespace AutoLotDAL.DataOperations
                 sqlParametr = new SqlParameter()
                 {
                     ParameterName = @"PetName",
-                    Value = car.Make,
+                    Value = car.PetName,
                     SqlDbType = SqlDbType.Char,
                     Size = 10
                 };
@@ -168,6 +168,46 @@ namespace AutoLotDAL.DataOperations
                 sql.ExecuteNonQuery();
             }
             CloseConnection();
+        }
+
+        public string LookUpPetName(int carId)
+        {
+            OpenConnection();
+            string carPetName;
+            //Установить имя хранимой процедуры
+            using (SqlCommand sqlCommand = new SqlCommand())
+            {
+                sqlCommand.Connection = _sqlConnection;
+                sqlCommand.CommandText = "GetPetName";
+                sqlCommand.CommandType = CommandType.StoredProcedure;
+                //Входной параметр
+                SqlParameter sqlParametr = new SqlParameter()
+                {
+                    ParameterName = @"carId",
+                    SqlDbType = SqlDbType.Int,
+                    Value = carId,
+                    Direction = ParameterDirection.Input
+                };
+
+                sqlCommand.Parameters.Add(sqlParametr);
+                //Выходной параметр
+                sqlParametr = new SqlParameter()
+                {
+                    ParameterName = @"petName",
+                    SqlDbType = SqlDbType.Char,
+                    Size = 10,
+                    Direction = ParameterDirection.Output
+                };
+
+                sqlCommand.Parameters.Add(sqlParametr);
+
+                //выполнить хранимую процедуру
+                sqlCommand.ExecuteNonQuery();
+                //возвратить выходной параметр
+                carPetName = (string)sqlCommand.Parameters[@"petName"].Value;
+                CloseConnection();
+            }
+            return carPetName;
         }
     }
 }
