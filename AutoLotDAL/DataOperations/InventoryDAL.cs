@@ -99,11 +99,40 @@ namespace AutoLotDAL.DataOperations
         public void InsertAuto(Car car)
         {
             OpenConnection();
-            string sqlInsert = "Insert into Inventory (Make, Color, PetName) " +
-                $"Values('{car.Make}', '{car.Color}', '{car.PetName}')";
+            string sqlInsert = "Insert into Inventory"
+                + "(Make, Color, PetName) Values" +
+                "(@Make, @Color, @PetName)";
+            //Эта команда будет иметь внутренние параметры
             using (SqlCommand sqlCommand = new SqlCommand(sqlInsert, _sqlConnection))
             {
-                sqlCommand.CommandType = CommandType.Text;
+                //заполнить коллекцию параметров
+                SqlParameter sqlParametr = new SqlParameter()
+                {
+                    ParameterName = "@Make",
+                    Value = car.Make,
+                    SqlDbType = SqlDbType.Char,
+                    Size = 10
+                };
+                sqlCommand.Parameters.Add(sqlParametr);
+
+                sqlParametr = new SqlParameter()
+                {
+                    ParameterName = @"Color",
+                    Value = car.Color,
+                    SqlDbType = SqlDbType.Char,
+                    Size = 20
+                };
+
+                sqlCommand.Parameters.Add(sqlParametr);
+                sqlParametr = new SqlParameter()
+                {
+                    ParameterName = @"PetName",
+                    Value = car.Make,
+                    SqlDbType = SqlDbType.Char,
+                    Size = 10
+                };
+
+                sqlCommand.Parameters.Add(sqlParametr);
                 sqlCommand.ExecuteNonQuery();
             }
             CloseConnection();
