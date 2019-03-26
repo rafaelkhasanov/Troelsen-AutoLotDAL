@@ -209,5 +209,66 @@ namespace AutoLotDAL.DataOperations
             }
             return carPetName;
         }
+
+        public void ProcessCreditRisk(bool throwEx, int custId)
+        {
+            OpenConnection();
+            //Первым делом найти текущее имя по идентификатору клиента
+            string fName;
+            string lName;
+            var cmdSelect = new SqlCommand($"Select * from Customers where CustId = {custId}", _sqlConnection);
+            using (var dataReader = cmdSelect.ExecuteReader())
+            {
+                if (dataReader.HasRows)
+                {
+                    dataReader.Read();
+                    fName = (string)dataReader["FirstName"];
+                    lName = (string)dataReader["LastName"];
+                }
+                else
+                {
+                    CloseConnection();
+                    return;
+                }
+            }
+
+            //Создать объекты команд, которые представляют каждый шаг операции
+            var cmdRemove = new SqlCommand($"Delete from Customers where CustId = {custId}", _sqlConnection);
+            var cmdInsert = new SqlCommand("Insert into CreditRisks"
+                + $"(FirstName, LastName) Values ('{fName}', '{lName}')", _sqlConnection);
+            //это будет получено из объекта подключения
+            SqlTransaction tx = null;
+            try
+            {
+                tx = _sqlConnection.BeginTransaction();
+                //Включить команды в транзакцию
+                cmdInsert.Transaction = tx;
+                cmdRemove.Transaction = tx;
+
+                //Выполнить команды
+                cmdInsert.ExecuteNonQuery();
+                cmdRemove.ExecuteNonQuery();
+
+                //Эмулировать ошибку
+                if (throwEx)
+                {
+                    //Возникла ошибка, связанная с базой данных! Отказ транзакции
+                    throw new Exception("Sorry! Database error! Tx failed...");
+                }
+                //Зафиксировать транзакцию!
+                tx.Commit();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                //любая ошибка приведет к откату транзакции
+                //Использовать условную операцию для проверки на предмет null
+                tx?.Rollback();
+            }
+            finally
+            {
+                CloseConnection();
+            }
+        }
     }
 }

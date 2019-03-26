@@ -35,9 +35,7 @@ namespace AutoLotClient
             {
                 Console.WriteLine($"An exception occured: {ex.Message}");
             }
-            dal.DeleteCar(1002);
-            dal.DeleteCar(1003);
-            dal.DeleteCar(1004);
+
             dal.InsertAuto(new Car
             {
                 Color = "Blue",
@@ -54,6 +52,26 @@ namespace AutoLotClient
             Console.WriteLine("New Car");
             Console.WriteLine($"Car pet name: {petName}");
             Console.WriteLine("Press enter to continue...");
+            MoveCustomer();
+            Console.ReadLine();
+        }
+
+        public static void MoveCustomer()
+        {
+            Console.WriteLine("Simple Transaction Example");
+            //Простой способ позволить транзакции успешно завершиться или отказать
+            bool throwEx = true;
+            Console.Write("Do you want to throw an exception (Y or N): ");
+            var userAnswer = Console.ReadLine();
+            if(userAnswer?.ToLower() == "n")
+            {
+                throwEx = false;
+            }
+
+            var dal = new InventoryDAL();
+            //Обработать клиента 1 - ввести идентификатор клиента, подлежащего перемещению
+            dal.ProcessCreditRisk(throwEx, 1);
+            Console.WriteLine("Check CreditRisk table for results");
             Console.ReadLine();
         }
     }
