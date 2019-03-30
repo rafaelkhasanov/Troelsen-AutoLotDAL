@@ -13,7 +13,7 @@ namespace AutoLotDAL.BulkImport
         private int _currentIndex = -1;
         private readonly PropertyInfo[] propertyInfos;
         private readonly Dictionary<string, int> nameDictionary;
-        public MyDataReader()
+        public MyDataReader(List<T> list)
         {
             propertyInfos = typeof(T).GetProperties();
             nameDictionary = propertyInfos.Select((x, index) => new { x.Name, index }).ToDictionary(pair => pair.Name, pair => pair.index);
